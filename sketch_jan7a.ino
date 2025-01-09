@@ -32,23 +32,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
-
 //This is to setup the Pulse Oximeter
 #include <Wire.h>
 #include "MAX30100_PulseOximeter.h"
-
 #define REPORTING_PERIOD_MS     1000
-
 // PulseOximeter is the higher level interface to the sensor
 // it offers:
 //  * beat detection reporting
 //  * heart rate calculation
 //  * SpO2 (oxidation level) calculation
 PulseOximeter pox;
-
 uint32_t tsLastReport = 0;
-
 // Callback (registered below) fired when a pulse is detected
 void onBeatDetected()
 {
@@ -74,7 +68,7 @@ void setup()
   display.clearDisplay();
 
   // Draw a single pixel in white
-  display.drawPixel(10, 10, SSD1306_WHITE);
+  putFinger();
 
   // Show the display buffer on the screen. You MUST call display() after
   // drawing commands to make them visible on screen!
@@ -128,22 +122,35 @@ void loop() {
             Serial.println(" %");
 
             // Update the OLED display
-            printHeartRate();
+            printVitals();
         } else {
             Serial.println("Waiting for valid data...");
+            putFinger();
         }
 
         tsLastReport = millis();
     }
 }
 
-void printHeartRate() {
+void printVitals() {
     display.clearDisplay();  // Clear before writing new text
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, 0);
-    display.print("Heart rate: ");
+    display.setCursor(1,0);
     display.clearDisplay();
-    display.println(pox.getHeartRate());  // Print heart rate on the next line
+    String heartRate = String(pox.getHeartRate());
+    String spO2 = String(pox.getSpO2());
+    display.println(heartRate + "bpm");// Print heart rate on the first line
+    display.println("SpO " + spO2 +"%pm");  // Print blood oxygen on the next line
     display.display();  // Update the screen with new content
+}
+
+void putFinger(){
+    display.clearDisplay();  // Clear before writing new text
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(1,0);
+    display.clearDisplay();
+    display.print("Put finger on  red thing");
+    display.display();
 }
